@@ -2,6 +2,7 @@ package net.iwinter.core.handle;
 
 import net.iwinter.core.annotation.HttpRequestController;
 import net.iwinter.core.annotation.HttpRequestMapping;
+import net.iwinter.core.bean.HandleRequestURL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HandlerRequestMapping {
     private final static Logger log = LoggerFactory.getLogger(HandlerRequestMapping.class);
 
-    private static List<String> packageNames = new ArrayList<>();
-    private static Map<String, Object> handlerMap = new ConcurrentHashMap<>();
-    private static Map<String, Object> instanceMap = new ConcurrentHashMap<>();
+    public static Map<String, HandleRequestURL> requestUrlMap = new ConcurrentHashMap<>();
 
     /**
      * 获取扫描的包路径
@@ -32,8 +31,9 @@ public class HandlerRequestMapping {
      * @param basePackage
      */
     private static void scanPackage(Class clazz, String basePackage) throws Exception {
-        URL url = clazz.getClassLoader().getResource(replaceTo(basePackage));
+        List<String> packageNames = new ArrayList<>();
 
+        URL url = clazz.getClassLoader().getResource(basePackage.replace(".", "/"));
         String pathfile = url.getFile();
         File file = new File(pathfile);
         String[] files = file.list();
@@ -44,21 +44,17 @@ public class HandlerRequestMapping {
             } else {
                 packageNames.add(basePackage + "." + eachFile.getName());
             }
-
         }
 
         // 获取Class
-        filterAndInstance();
+        filterAndInstance(packageNames);
     }
 
-    private static String replaceTo(String path) {
-        return path.replace(".", "/");
-    }
-
-    private static void filterAndInstance() throws Exception {
+    private static void filterAndInstance(List<String> packageNames) throws Exception {
         if (packageNames.isEmpty()) {
             return;
         }
+        Map<String, Object> instanceMap = new ConcurrentHashMap<>();
         for (String classname : packageNames) {
             Class ccName = Class.forName(classname.replace(".class", ""));
             if (ccName.isAnnotationPresent(HttpRequestController.class)) {
@@ -69,33 +65,33 @@ public class HandlerRequestMapping {
             }
             continue;
         }
-
         // 映射请求地址
-        handlerMap();
+        handlerMap(instanceMap);
     }
 
 
-    private static void handlerMap() {
+    private static void handlerMap(Map<String, Object> instanceMap) {
         if (instanceMap.isEmpty()) {
             return;
         }
         for (Map.Entry<String, Object> entry : instanceMap.entrySet()) {
-            if (entry.getValue().getClass().isAnnotationPresent(HttpRequestController.class)) {
-                HttpRequestController controller = entry.getValue().getClass().getAnnotation(HttpRequestController.class);
-                String ctvalue = controller.value();
-                Method[] methods = entry.getValue().getClass().getMethods();
-                for (Method method : methods) {
-                    if (method.isAnnotationPresent(HttpRequestMapping.class)) {
-                        HttpRequestMapping rm = method.getAnnotation(HttpRequestMapping.class);
-                        String rmvalue = rm.value();
-                        handlerMap.put("/" + ctvalue + "/" + rmvalue, method);
-                    } else {
-                        continue;
-                    }
+            HttpRequestController controller = entry.getValue().getClass().getAnnotation(HttpRequestController.class);
+            String ctvalue = controller.value();
+            Method[] methods = entry.getValue().getClass().getMethods();
+            for (Method method : methods) {
+                if (method.isAnnotationPresent(HttpRequestMapping.class)) {
+                    HttpRequestMapping rm = method.getAnnotation(HttpRequestMapping.class);
+
+                    HandleRequestURL requestURL = new HandleRequestURL();
+                    requestURL.setClazz(entry.getValue());
+                    requestURL.setMethod(method);
+
+                    requestUrlMap.put(ctvalue + rm.value(), requestURL);
+                } else {
+                    continue;
                 }
-            } else {
-                continue;
             }
+
         }
     }
 
