@@ -1,67 +1,43 @@
 package net.iwinter.core.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import net.iwinter.core.constant.HttpServerConstant;
+import net.iwinter.core.utils.PropertiesUtil;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author: luogang
  * @email: iwinter997@gmail.com
  * @createDate: 2019/04/10 16:26
  */
-public class HttpServerConfig {
-    private static HttpServerConfig httpServerConfig;
+public final class HttpServerConfig {
+    private static Integer serverPort;
+    private static String scanPath;
 
     private HttpServerConfig() {
-
     }
 
-    public static HttpServerConfig getInstance() {
-        if (null == httpServerConfig) {
-            synchronized (HttpServerConfig.class) {
-                if (null == httpServerConfig) {
-                    Map<String, Object> configPeoperties = getConfigPeoperties();
-                    httpServerConfig = new HttpServerConfig();
-                    if (configPeoperties.containsKey("serverPort")) {
-                        httpServerConfig.setServerPort((Integer) configPeoperties.get("serverPort"));
-                    }
-                }
-            }
+    static {
+        PropertiesUtil propertiesUtil = new PropertiesUtil(HttpServerConstant.HTTP_SERVER_CONFIG);
+        String serverPort = propertiesUtil.get(HttpServerConstant.HTTP_SERVER_PORT).trim();
+
+        if (!StringUtils.isEmpty(serverPort)) {
+            setServerPort(Integer.parseInt(serverPort));
         }
-        return httpServerConfig;
     }
 
-    private static Map<String, Object> getConfigPeoperties() {
-        Map<String, Object> serverConfigMap = new HashMap<String, Object>(1);
-
-        // TODO 从配置文件加载
-        serverConfigMap.put("serverPort", 8844);
-        return serverConfigMap;
-    }
-
-    public Integer serverPort;
-    public String scanPath;
-
-    public static HttpServerConfig getHttpServerConfig() {
-        return httpServerConfig;
-    }
-
-    public static void setHttpServerConfig(HttpServerConfig httpServerConfig) {
-        HttpServerConfig.httpServerConfig = httpServerConfig;
-    }
-
-    public Integer getServerPort() {
+    public static Integer getServerPort() {
         return serverPort;
     }
 
-    public void setServerPort(Integer serverPort) {
-        this.serverPort = serverPort;
+    public static void setServerPort(Integer serverPort) {
+        HttpServerConfig.serverPort = serverPort;
     }
 
-    public String getScanPath() {
+    public static String getScanPath() {
         return scanPath;
     }
 
-    public void setScanPath(String scanPath) {
-        this.scanPath = scanPath;
+    public static void setScanPath(String scanPath) {
+        HttpServerConfig.scanPath = scanPath;
     }
 }

@@ -5,6 +5,9 @@ import net.iwinter.core.annotation.HttpRequestMapping;
 import net.iwinter.core.annotation.HttpResponseBody;
 import net.iwinter.core.constant.HttpServerConstant;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author: luogang
  * @email: iwinter997@gmail.com
@@ -23,7 +26,10 @@ public class TestController {
 
     @HttpRequestMapping(value = "/json")
     @HttpResponseBody(value = HttpServerConstant.ContentType.JSON)
-    public String jsonValue(String param) {
-        return param;
+    public Map<String,Object> jsonValue(String param) {
+        Map<String,Object> jsonMap = new HashMap<>(2);
+        jsonMap.put("data",param);
+        jsonMap.put("code",200);
+        return jsonMap;
     }
 }

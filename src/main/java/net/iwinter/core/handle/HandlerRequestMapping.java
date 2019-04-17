@@ -3,6 +3,7 @@ package net.iwinter.core.handle;
 import net.iwinter.core.annotation.HttpRequestController;
 import net.iwinter.core.annotation.HttpRequestMapping;
 import net.iwinter.core.bean.HandleRequestURL;
+import net.iwinter.core.config.HttpServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +46,14 @@ public class HandlerRequestMapping {
                 packageNames.add(basePackage + "." + eachFile.getName());
             }
         }
-
-        // 获取Class
         filterAndInstance(packageNames);
     }
 
+    /**
+     * 获取Class
+     * @param packageNames
+     * @throws Exception
+     */
     private static void filterAndInstance(List<String> packageNames) throws Exception {
         if (packageNames.isEmpty()) {
             return;
@@ -65,11 +69,13 @@ public class HandlerRequestMapping {
             }
             continue;
         }
-        // 映射请求地址
         handlerMap(instanceMap);
     }
 
-
+    /**
+     * 映射请求地址
+     * @param instanceMap
+     */
     private static void handlerMap(Map<String, Object> instanceMap) {
         if (instanceMap.isEmpty()) {
             return;
@@ -96,6 +102,6 @@ public class HandlerRequestMapping {
     }
 
     public static void handelRequestUrl(Class clazz) throws Exception {
-        scanPackage(clazz, clazz.getPackage().getName());
+        scanPackage(clazz, HttpServerConfig.getScanPath());
     }
 }

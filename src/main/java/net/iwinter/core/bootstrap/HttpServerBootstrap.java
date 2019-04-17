@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 public class HttpServerBootstrap {
     private final static Logger log = LoggerFactory.getLogger(HttpServerBootstrap.class);
 
-    private final static HttpServerConfig serverConfig = HttpServerConfig.getInstance();
     private final static EventLoopGroup boss = new NioEventLoopGroup();
     private final static EventLoopGroup work = new NioEventLoopGroup();
     private static Channel channel;
@@ -43,17 +42,18 @@ public class HttpServerBootstrap {
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new HttpServerInitializer());
 
-        ChannelFuture channelFuture = bindServerPort(serverBootstrap, serverConfig.getServerPort());
+        Integer serverPort = HttpServerConfig.getServerPort();
+        ChannelFuture channelFuture = bindServerPort(serverBootstrap, serverPort);
         channel = channelFuture.channel();
     }
 
     private static ChannelFuture bindServerPort(ServerBootstrap bootstrap, Integer port) throws InterruptedException {
         ChannelFuture bind = bootstrap.bind(port).sync();
         if (!bind.isSuccess()) {
-            serverConfig.setServerPort(port + 1);
-            bindServerPort(bootstrap, serverConfig.getServerPort());
+            HttpServerConfig.setServerPort(port + 1);
+            bindServerPort(bootstrap, HttpServerConfig.getServerPort());
         }
-        log.error("server started port:{}", serverConfig.getServerPort());
+        log.error("server started port:{}", HttpServerConfig.getServerPort());
         return bind;
     }
 
@@ -65,14 +65,14 @@ public class HttpServerBootstrap {
                 boss.shutdownGracefully();
                 work.shutdownGracefully();
 
-                log.error("server stop port:{}", serverConfig.getServerPort());
+                log.error("server stop port:{}", HttpServerConfig.getServerPort());
             }
         });
     }
 
     private static void initRequestMapping(Class clazz) throws Exception {
         log.info("init request mapping package:{}", clazz.getPackage());
-        serverConfig.setScanPath(clazz.getPackage().getName());
+        HttpServerConfig.setScanPath(clazz.getPackage().getName());
 
         HandlerRequestMapping.handelRequestUrl(clazz);
     }
