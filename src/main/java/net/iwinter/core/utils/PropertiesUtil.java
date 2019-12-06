@@ -1,9 +1,6 @@
 package net.iwinter.core.utils;
 
 import java.io.InputStreamReader;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -12,7 +9,7 @@ import java.util.Properties;
  * @createDate: 2019/04/16 20:49
  */
 public class PropertiesUtil {
-    private Properties props;
+    private Properties props = null;
 
     public PropertiesUtil(String fileName) {
         readProperties(fileName);
@@ -21,13 +18,11 @@ public class PropertiesUtil {
     /**
      * 加载配置文件
      *
-     * @param fileName
+     * @param fileName 文件名称
      */
     private void readProperties(String fileName) {
-        try {
+        try (InputStreamReader inputStream = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream(fileName), "UTF-8");) {
             props = new Properties();
-            InputStreamReader inputStream = new InputStreamReader(
-                    this.getClass().getClassLoader().getResourceAsStream(fileName), "UTF-8");
             props.load(inputStream);
         } catch (Exception e) {
             e.printStackTrace();
@@ -37,16 +32,4 @@ public class PropertiesUtil {
     public String get(String key) {
         return props.getProperty(key);
     }
-
-    public Map<?, ?> getAll() {
-        Map<String, String> map = new HashMap<>();
-        Enumeration<?> enu = props.propertyNames();
-        while (enu.hasMoreElements()) {
-            String key = (String) enu.nextElement();
-            String value = props.getProperty(key);
-            map.put(key, value);
-        }
-        return map;
-    }
-
 }

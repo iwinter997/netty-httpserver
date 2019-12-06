@@ -30,12 +30,17 @@ public class HttpServerBootstrap {
             initServer();
             stopServer();
         } catch (InterruptedException e) {
-            log.error("http server start erro", e);
+            log.error("http server start -> erro:[{}]", e);
         } catch (Exception e) {
-            log.error("http server start erro", e);
+            log.error("http server start -> erro:[{}]", e);
         }
     }
 
+    /**
+     * 初始化服务
+     *
+     * @throws InterruptedException
+     */
     private static void initServer() throws InterruptedException {
         ServerBootstrap serverBootstrap = new ServerBootstrap()
                 .group(boss, work)
@@ -47,33 +52,47 @@ public class HttpServerBootstrap {
         channel = channelFuture.channel();
     }
 
+    /**
+     * 绑定端口
+     *
+     * @param bootstrap 启动器
+     * @param port      端口号
+     * @return
+     * @throws InterruptedException
+     */
     private static ChannelFuture bindServerPort(ServerBootstrap bootstrap, Integer port) throws InterruptedException {
         ChannelFuture bind = bootstrap.bind(port).sync();
         if (!bind.isSuccess()) {
             HttpServerConfig.setServerPort(port + 1);
             bindServerPort(bootstrap, HttpServerConfig.getServerPort());
         }
-        log.error("server started port:{}", HttpServerConfig.getServerPort());
+        log.info("server started port:[{}]", HttpServerConfig.getServerPort());
         return bind;
     }
 
+    /**
+     * 停止服务
+     */
     private static void stopServer() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                channel.close();
-                boss.shutdownGracefully();
-                work.shutdownGracefully();
-
-                log.error("server stop port:{}", HttpServerConfig.getServerPort());
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(() -> {
+                    channel.close();
+                    boss.shutdownGracefully();
+                    work.shutdownGracefully();
+                    log.info("server stop port:[{}]", HttpServerConfig.getServerPort());
+                })
+        );
     }
 
+    /**
+     * 初始化HTTP请求地址映射
+     *
+     * @param clazz 加载类
+     * @throws Exception
+     */
     private static void initRequestMapping(Class clazz) throws Exception {
-        log.info("init request mapping package:{}", clazz.getPackage());
+        log.info("init request mapping package:[{}]", clazz.getPackage());
         HttpServerConfig.setScanPath(clazz.getPackage().getName());
-
         HandlerRequestMapping.handelRequestUrl(clazz);
     }
 }

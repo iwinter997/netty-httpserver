@@ -13,16 +13,15 @@ public final class HttpServerConfig {
     private static Integer serverPort;
     private static String scanPath;
 
-    private HttpServerConfig() {
-    }
-
     static {
-        PropertiesUtil propertiesUtil = new PropertiesUtil(HttpServerConstant.HTTP_SERVER_CONFIG);
+        PropertiesUtil propertiesUtil = new PropertiesUtil(HttpServerConstant.HTTP_SERVER_CONFIG_FILE);
         String serverPort = propertiesUtil.get(HttpServerConstant.HTTP_SERVER_PORT).trim();
-
         if (!StringUtils.isEmpty(serverPort)) {
             setServerPort(Integer.parseInt(serverPort));
         }
+    }
+
+    private HttpServerConfig() {
     }
 
     public static Integer getServerPort() {
